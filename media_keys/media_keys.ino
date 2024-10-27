@@ -27,7 +27,8 @@ constexpr size_t LOOP_DELAY = 15;
 // Battery
 #define CHECK_BATTERY true
 #if CHECK_BATTERY
-// IMPORTANT! if using NimBLE battery level will only work with 
+// IMPORTANT! if using NimBLE battery level will only work with this NimBLE hack.
+// https://github.com/T-vK/ESP32-BLE-Keyboard/issues/210#issuecomment-1995165739
 constexpr auto BATTERY_READ_PIN = A0;
 constexpr float MIN_BATTERY_VOLTAGE = 2.75f;
 constexpr float MAX_BATTERY_VOLTAGE = 4.2f;
