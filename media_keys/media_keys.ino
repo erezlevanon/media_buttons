@@ -25,15 +25,15 @@ constexpr size_t BT_CONNECTION_ATTEMPTS_PER_WAKEUP = 10;
 constexpr size_t LOOP_DELAY = 15;
 
 // Battery
-#define CHECK_BATTERY true
-#if CHECK_BATTERY
 // IMPORTANT! if using NimBLE battery level will only work with this NimBLE hack.
 // https://github.com/T-vK/ESP32-BLE-Keyboard/issues/210#issuecomment-1995165739
+#define CHECK_BATTERY true
+#if CHECK_BATTERY
 constexpr auto BATTERY_READ_PIN = A0;
 constexpr float MIN_BATTERY_VOLTAGE = 2.75f;
 constexpr float MAX_BATTERY_VOLTAGE = 4.2f;
 // How often to test for battery level.
-constexpr size_t MS_BATTERY_CHECK = 1000 * 60 * 3; // 3 minutes.
+constexpr size_t MS_BATTERY_CHECK = 1000 * 60 * 3;  // 3 minutes.
 constexpr size_t BATTERY_NUM_MEASUREMENTS = 16;
 #endif
 ///////////////SETUP////PARAMS////////////////////
@@ -65,6 +65,7 @@ void updateBattery() {
   LOG(level);
   bleKeyboard.setBatteryLevel(level);
 }
+
 #define UPDATE_BATTERY() \
   do { \
     updateBattery(); \
@@ -78,8 +79,6 @@ void updateBattery() {
 template<typename T> T fmap(T value, T in_min, T in_max, T out_min, T out_max) {
   return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
-
-
 
 void setup() {
 #if CHECK_BATTERY
