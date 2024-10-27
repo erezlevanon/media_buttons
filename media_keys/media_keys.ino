@@ -4,7 +4,7 @@
 #include <BleKeyboard.h>
 #include <OneButtonTiny.h>
 
-#define DEBUG flase
+#define DEBUG false
 #if DEBUG
 #define LOG(x) \
   do { Serial.println(x); } while (0);
@@ -23,9 +23,21 @@ constexpr size_t BT_CONNECTION_INTERVAL_MS = 2000;
 constexpr size_t BT_CONNECTION_ATTEMPTS_PER_WAKEUP = 10;
 // Delay at the end of each loop, too large and reading button works poorly.
 constexpr size_t LOOP_DELAY = 15;
+
+// Battery
+#define CHECK_BATTERY true
+#if CHECK_BATTERY
+// IMPORTANT! if using NimBLE battery level will only work with 
+constexpr auto BATTERY_READ_PIN = A0;
+constexpr float MIN_BATTERY_VOLTAGE = 2.75f;
+constexpr float MAX_BATTERY_VOLTAGE = 4.2f;
+// How often to test for battery level.
+constexpr size_t MS_BATTERY_CHECK = 1000 * 60 * 3; // 3 minutes.
+constexpr size_t BATTERY_NUM_MEASUREMENTS = 16;
+#endif
 ///////////////SETUP////PARAMS////////////////////
 
-BleKeyboard bleKeyboard("playbutton-2");
+BleKeyboard bleKeyboard("playbutton");
 
 OneButtonTiny btn(
   BUTTON_PIN,
@@ -34,7 +46,44 @@ OneButtonTiny btn(
 
 uint8_t connectionWaitCount = 0;
 
+#if CHECK_BATTERY
+size_t last_battery_check = 0;
+void updateBattery() {
+  if (millis() - last_battery_check < MS_BATTERY_CHECK) return;
+  LOG("Update Battery");
+  last_battery_check = millis();
+  uint32_t vBatt = 0;
+  for (int i = 0; i < 16; i++) {
+    vBatt += analogReadMilliVolts(BATTERY_READ_PIN);
+  }
+  float vBattF = 2.0 * vBatt / 16.0 / 1000.0;
+  LOG("Battery voltage:")
+  LOG(vBattF);
+  uint8_t level = (uint8_t)fmap((float)vBattF, MIN_BATTERY_VOLTAGE, MAX_BATTERY_VOLTAGE, 0.0f, 100.0f);
+  LOG("Battery level:")
+  LOG(level);
+  bleKeyboard.setBatteryLevel(level);
+}
+#define UPDATE_BATTERY() \
+  do { \
+    updateBattery(); \
+  } while (0);
+#else
+#define UPDATE_BATTERY() \
+  do { \
+  } while (0);
+#endif
+
+template<typename T> T fmap(T value, T in_min, T in_max, T out_min, T out_max) {
+  return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+
+
 void setup() {
+#if CHECK_BATTERY
+  pinMode(BATTERY_READ_PIN, INPUT);
+#endif
   btn.setDebounceMs(10);
   btn.setClickMs(10);
   btn.attachClick(playpause);
@@ -44,6 +93,7 @@ void setup() {
 #endif
   LOG("Starting BLE work!");
 
+  UPDATE_BATTERY();
   bleKeyboard.begin();
 }
 
@@ -63,8 +113,8 @@ void prevTrack() {
 
 void loop() {
   btn.tick();
-
-  if (!bleKeyboard.isConnected()) { 
+  UPDATE_BATTERY();
+  if (!bleKeyboard.isConnected()) {
     LOG("Not connetcted");
     connectionWaitCount++;
     delay(BT_CONNECTION_INTERVAL_MS);
