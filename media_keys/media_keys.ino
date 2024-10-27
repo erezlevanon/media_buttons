@@ -48,7 +48,7 @@ OneButtonTiny btn(
 uint8_t connectionWaitCount = 0;
 
 #if CHECK_BATTERY
-size_t last_battery_check = 0;
+size_t last_battery_check = -MS_BATTERY_CHECK;
 void updateBattery() {
   if (millis() - last_battery_check < MS_BATTERY_CHECK) return;
   LOG("Update Battery");
@@ -93,7 +93,6 @@ void setup() {
 #endif
   LOG("Starting BLE work!");
 
-  UPDATE_BATTERY();
   bleKeyboard.begin();
 }
 
@@ -113,7 +112,6 @@ void prevTrack() {
 
 void loop() {
   btn.tick();
-  UPDATE_BATTERY();
   if (!bleKeyboard.isConnected()) {
     LOG("Not connetcted");
     connectionWaitCount++;
@@ -124,6 +122,7 @@ void loop() {
       esp_deep_sleep_start();
     }
   } else {
+    UPDATE_BATTERY();
     delay(LOOP_DELAY);
     connectionWaitCount = 0;
   }
