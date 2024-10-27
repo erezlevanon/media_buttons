@@ -30,8 +30,9 @@ constexpr size_t LOOP_DELAY = 15;
 #define CHECK_BATTERY true
 #if CHECK_BATTERY
 constexpr auto BATTERY_READ_PIN = A0;
-constexpr float MIN_BATTERY_VOLTAGE = 2.75f;
-constexpr float MAX_BATTERY_VOLTAGE = 4.2f;
+// Got from https://www.tinytronics.nl/en/power/batteries/li-po/pkcell-li-po-battery-3.7v-150mah-jst-ph-lp402025
+constexpr float MIN_BATTERY_VOLTAGE = 2.9f;
+constexpr float MAX_BATTERY_VOLTAGE = 4.075f;
 // How often to test for battery level.
 constexpr size_t MS_BATTERY_CHECK = 1000 * 60 * 3;  // 3 minutes.
 constexpr size_t BATTERY_NUM_MEASUREMENTS = 16;
